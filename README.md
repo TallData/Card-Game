@@ -32,13 +32,16 @@ This repository imports the existing Guildfall Sites source from commit `14e69f0
 
 GitHub is the development repository. The hosted Site retains its own source repository and access settings. Pushing to GitHub does **not** automatically deploy to ChatGPT Sites, and edits made through Sites do **not** automatically appear here.
 
-To publish a later update through Codex with the Sites plugin:
+Future Codex work follows [AGENTS.md](AGENTS.md). The [sync guide](docs/site-sync.md) documents the full workflow and recovery steps.
 
-1. Open the existing Site identified by `.openai/hosting.json`; do not create a replacement Site.
-2. Obtain fresh source access through Sites and open its source checkout.
-3. Apply the reviewed application files from this repository to that checkout, preserving the existing project identity.
-4. Validate the files, synchronize the Site source, package the static directory, and save/deploy using the Sites workflow.
-5. Bring any subsequent Sites-side changes back into this repository before continuing development.
+The helper previews or applies source changes in either direction, detects conflicting edits, and records the GitHub/Sites commit pair after a verified deployment:
+
+```sh
+python3 scripts/sync_site.py --site-checkout /absolute/path/to/site-checkout status
+python3 scripts/sync_site.py --site-checkout /absolute/path/to/site-checkout stage --direction to-site
+```
+
+Staging is a preview unless `--apply` is supplied. Refresh both repositories first. The helper does not deploy or handle credentials; Codex completes publication through the Sites plugin. Repository tooling and documentation changes do not require a Site deployment.
 
 Do not commit Sites credentials, local environment files, or browser save data.
 

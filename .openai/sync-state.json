@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "project_id": "appgprj_6b05326f47dc81919eadcf6e730ffd66",
+  "github_commit": "0d81f60ee1b3c60330136c50d7603cddda6c2aa4",
+  "site_commit": "14e69f09285f6ff89e2af49e5149f4f6b50dd181",
+  "files": {
+    ".openai/hosting.json": "c6b7d336bed3251fc75b4860cb47a2597573d714e1b5e992f8026c0956d4854b",
+    "dist/engine.js": "1c9f6f2111a343691ca5ac2df2c94a09693367ec5fa2aa3498bb7f0d492bf31f",
+    "dist/index.html": "14a1cfa54fa145b7652d8b712445d62c2100ade18ab905ecde2be9415bc6f362",
+    "dist/table.css": "53d9af1ccb50a0bf78acc28fbb80a434fef4fa42b7744816be6f902ded67325e",
+    "dist/table.js": "3793a93600f651cb03299fed5aebf612b6e8ded301c368021967130dede7736f"
+  },
+  "last_deployment": null
+}
