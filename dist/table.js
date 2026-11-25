@@ -1,32 +1,37 @@
-import { cards, market, victory, accelerants, newGame, current, rivals, play, buy, buyIssue, build, buildIssue, tax, endTurn, cpuTurn } from './engine.js';
+import { TARGET_PRESTIGE, MAX_ROUNDS, cards, market, victory, accelerants, newGame, current, rivals, play, playIssue, buy, buyIssue, build, buildIssue, tax, endTurn, cpuStep, cpuTurn } from './engine.js';
 
 const glyphs = { compass:'◈', coins:'♙', coin:'◉', anvil:'⚒︎', gem:'♢', swords:'⚔︎', eye:'◎', shield:'⛨', temple:'▤', flag:'⚑', castle:'♜', crown:'♔' };
 const storageKey = 'guildfall.table.v1';
 const accessKey = 'guildfall.accelerants';
+const speedKey = 'guildfall.cpuSpeed';
 const trialCode = 'GUILD15';
+const speedMs = { '1x':360, '2x':140, instant:160 };
 const byId = id => document.getElementById(id);
 const panel = byId('panel');
 const panelBody = byId('panel-body');
 let handMode = 'play';
 let saved;
 let unlocked = false;
+let cpuSpeed = '1x';
 try {
   saved = JSON.parse(localStorage.getItem(storageKey));
   unlocked = localStorage.getItem(accessKey) === 'yes';
+  const storedSpeed = localStorage.getItem(speedKey);
+  if (storedSpeed in speedMs) cpuSpeed = storedSpeed;
 } catch {}
-let game = saved?.schema === 1 ? saved : newGame();
+let game = saved?.schema === 2 ? saved : newGame();
 let cpuTimer;
 
 const guide = `
   <ol class="guide-list">
-    <li><strong>Play your hand.</strong> Play as many cards as you like, in any order. Copper and Merchants make coins. Actions draw cards and create combinations.</li>
-    <li><strong>Buy better cards.</strong> You have 2 buys each turn. Standard purchases enter your discard pile. In an Accelerants game, instant engines install directly into an asset slot and resolve their purchase effect immediately.</li>
-    <li><strong>Build your engine.</strong> Spend 2 coins to turn an unplayed card into an asset. You get one manual build per turn and up to three unique assets. Instant engines need no extra coins and leave your manual build available. If you replace an asset, its card goes to your discard pile. Rebuilding skips the purchase effect.</li>
+    <li><strong>Play your hand.</strong> You start each turn with 1 action and 1 buy. Treasures (Copper and Merchant) cost no actions and can be played anytime. Actions and Attacks spend 1 action unless they grant +actions to keep your chain going.</li>
+    <li><strong>Buy better cards.</strong> Standard purchases enter your discard pile. In an Accelerants game, instant engines install directly into an asset slot and resolve their purchase effect immediately.</li>
+    <li><strong>Build your engine.</strong> Spend 2 coins to turn an unplayed card into an asset—building does not cost an action. You get one manual build per turn and up to three unique assets. Instant engines need no extra coins and leave your manual build available. If you replace an asset, its card goes to your discard pile. Rebuilding skips the purchase effect.</li>
     <li><strong>Disrupt a rival.</strong> You can launch one attack per turn, shared between played attacks and Embargo purchases. A Sentinel in your opponent’s hand blocks it automatically. Disabled assets recover after that opponent’s next turn.</li>
-    <li><strong>Accelerants expansion only.</strong> Unlock the separate deck with a trial code, then select it for a new game. One owning host enables it for everyone at the table. Foundry grants 2 coins and 1 buy on purchase, then 2 coins at each turn start. Overdrive draws 2 on purchase, then 1 on your first action each turn. Embargo attacks on purchase and adds 1 coin to rivals’ first purchase. Combined taxes cap at 2. A shield blocks the purchase attack. The asset still installs and applies its tax.</li>
-    <li><strong>Claim the city.</strong> Victory cards give prestige and take space in your deck. Reaching 15 schedules one final round for everyone. The highest prestige wins, and tied players share victory. Round 25 is the limit.</li>
+    <li><strong>Accelerants expansion only.</strong> Unlock the separate deck with a trial code, then select it for a new game. One owning host enables it for everyone at the table. Foundry grants 2 coins and 1 buy on purchase, then 2 coins at each turn start. Overdrive draws 2 and grants 1 action on purchase, then draws 1 on your first action each turn. Embargo attacks on purchase and adds 1 coin to rivals’ first purchase. Combined taxes cap at 2. A shield blocks the purchase attack. The asset still installs and applies its tax.</li>
+    <li><strong>Claim the city.</strong> Victory cards give prestige and take space in your deck. Reaching ${TARGET_PRESTIGE} prestige schedules one final round for everyone. The highest prestige wins, and tied players share victory. Round ${MAX_ROUNDS} is the limit.</li>
   </ol>
-  <p class="combo"><strong>Try this combination.</strong> Play Scout to discard a card, recover it with Salvager, then play Artificer to score a coin for each action you’ve played.</p>
+  <p class="combo"><strong>Try this combination.</strong> Play Architect (+2 actions) into Scout (draws 2, +1 action, discards lowest), recover the discarded card with Salvager, then finish with Artificer to score a coin for each action played.</p>
   <p class="panel-muted">Scouts discard the lowest-cost card automatically. Salvagers recover the highest-cost eligible card. Assets activate immediately unless their effect says “start your turn.”</p>
   <div class="dialog-actions"><button class="button primary" data-close>Back to the table</button></div>`;
 
@@ -68,7 +73,7 @@ function renderPlayer(player, active) {
   return `<article class="player ${active ? 'active' : ''}" ${active ? 'aria-current="true"' : ''}>
     <span class="avatar" aria-hidden="true">${player.cpu ? ['','♞','♜','♝','♛'][player.id] : '♔'}</span>
     <div class="player-info"><div class="player-name">${player.name}${active ? '<small>Playing</small>' : ''}</div><span class="player-meta">${title}</span><span class="player-assets">${assets}</span></div>
-    <div class="player-score"><strong>${player.prestige}</strong><small>/ 15 ♔</small></div>
+    <div class="player-score"><strong>${player.prestige}</strong><small>/ ${TARGET_PRESTIGE} ♔</small></div>
   </article>`;
 }
 
@@ -79,7 +84,9 @@ function render() {
   byId('table-type').textContent = game.mode === 'solo' ? 'Solo table' : 'Pass-and-play table';
   byId('deck-label').textContent = game.expansion ? 'ACCELERANTS' : 'BASE DECK';
   byId('round').textContent = String(game.round).padStart(2, '0');
-  byId('round-limit').textContent = game.finalRound ? `/ ${game.finalRound} FINAL` : '/ 25 MAX';
+  byId('round-limit').textContent = game.finalRound ? `/ ${game.finalRound} FINAL` : `/ ${MAX_ROUNDS} MAX`;
+  byId('race-title').textContent = `Race to ${TARGET_PRESTIGE} prestige`;
+  byId('race-copy').textContent = `Reach ${TARGET_PRESTIGE} to trigger the final round. Highest score wins.`;
   const players = byId('players');
   players.style.setProperty('--seats',game.players.length);
   players.innerHTML = game.players.map(entry => renderPlayer(entry,entry === player && !game.winners)).join('');
@@ -109,10 +116,10 @@ function render() {
   byId('hand-title').textContent = game.mode === 'local' ? `${player.name}’s hand` : 'Your hand';
   const showHand = !player.cpu && !game.passing && !game.winners;
   byId('hand-count').textContent = showHand ? `${player.hand.length} card${player.hand.length === 1 ? '' : 's'}` : '';
-  byId('hand-note').textContent = handMode === 'build' ? 'Choose an unplayed card to build it for 2 coins.' : 'Play cards in any order. Save Artificer until after your other actions.';
+  byId('hand-note').textContent = handMode === 'build' ? 'Choose an unplayed card to build it for 2 coins.' : 'Play Treasures freely. Actions & Attacks use 1 action unless chained; save Artificer for last.';
   byId('hand-cards').innerHTML = showHand ? player.hand.map((key,index) => {
     const building = handMode === 'build';
-    const issue = building ? buildIssue(game,key) : cards[key].points ? 'Scores prestige' : '';
+    const issue = building ? buildIssue(game,key) : playIssue(game,index);
     const spent = cards[key].type === 'Attack' && turn.attack;
     const action = building ? 'Build' : spent ? 'Play for 2 coins' : 'Play card';
     return cardMarkup(key, {action:`data-hand="${index}"`, label:`${cards[key].name}, ${issue || action}`, footer:issue || action, disabled:!!issue, asset:building});
@@ -123,6 +130,7 @@ function render() {
   });
   byId('hand-stats').innerHTML = showHand ? `<span>Deck <strong>${player.deck.length}</strong></span><span>Discard <strong>${player.discard.length}</strong></span><span>Played <strong>${player.played.length}</strong></span><span>Actions chained <strong>${turn.actions}</strong></span>` : '';
   byId('turn-title').textContent = game.winners ? 'Game over' : game.passing ? 'Pass the table' : player.cpu ? `${player.name}’s turn` : game.mode === 'local' ? `${player.name}’s turn` : 'Your turn';
+  byId('actions-left').textContent = turn.actionsLeft;
   byId('coins').textContent = turn.coins;
   byId('buys').textContent = turn.buys;
   byId('attack-status').innerHTML = `<b aria-hidden="true">⚔︎</b>${turn.attack ? 'Attack used' : '1 attack available'}`;
@@ -131,7 +139,9 @@ function render() {
   byId('tax-status').textContent = tax(game) ? `First purchase tax +${tax(game)}` : '';
   byId('end-turn').disabled = Boolean(game.winners || player.cpu);
   byId('end-turn').textContent = game.passing ? 'Reveal hand' : 'End turn';
-  byId('quick-counters').textContent = `${turn.coins} coins · ${turn.buys} buys`;
+  byId('cpu-speed-row').hidden = game.mode !== 'solo';
+  byId('cpu-speed').value = cpuSpeed;
+  byId('quick-counters').textContent = `${turn.actionsLeft} act · ${turn.coins} coins · ${turn.buys} buy`;
   byId('quick-end').disabled = byId('end-turn').disabled;
   byId('quick-end').textContent = byId('end-turn').textContent;
   byId('chronicle').innerHTML = game.log.slice(0,14).map(entry => `<li>${entry.message}</li>`).join('');
@@ -222,12 +232,21 @@ function driveTable() {
   if (game.passing) { showPass(); return; }
   if (current(game).cpu) {
     cpuTimer = setTimeout(() => {
-      cpuTurn(game);
+      if (cpuSpeed === 'instant') cpuTurn(game);
+      else cpuStep(game);
       update();
       driveTable();
-    },440);
+    }, speedMs[cpuSpeed] ?? 360);
   }
 }
+
+byId('cpu-speed').addEventListener('change', event => {
+  const next = event.target.value;
+  if (!(next in speedMs)) return;
+  cpuSpeed = next;
+  try { localStorage.setItem(speedKey, cpuSpeed); } catch {}
+  if (current(game).cpu) driveTable();
+});
 
 function endPlayerTurn() {
   if (game.passing) { showPass(); return; }

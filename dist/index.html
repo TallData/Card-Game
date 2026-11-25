@@ -28,33 +28,19 @@
           <p class="eyebrow">THE CITY IS YOURS TO CLAIM</p>
           <h1 id="game-title">Fortune favors the cunning.</h1>
         </div>
-        <div class="edition"><span class="tag" id="deck-label"></span><span>ROUND</span><strong id="round"></strong><span id="round-limit">/ 25 MAX</span></div>
+        <div class="edition"><span class="tag" id="deck-label"></span><span>ROUND</span><strong id="round"></strong><span id="round-limit">/ 90 MAX</span></div>
       </section>
       <div id="players" class="players" aria-label="Players"></div>
       <div id="game-notice" class="game-notice" hidden></div>
       <div class="layout">
-        <div class="board">
-          <section class="market-section" id="marketplace" aria-labelledby="market-title">
-            <div class="section-head">
-              <div><p class="eyebrow">BUILD YOUR ADVANTAGE</p><div class="title-row"><h2 id="market-title">The marketplace</h2><span>Shared supply</span></div></div>
-              <p id="market-note">Standard purchases go to your discard pile</p>
-            </div>
-            <div id="market" class="market-grid"></div>
-            <section id="expansion-market" hidden aria-labelledby="expansion-title">
-              <div class="title-row expansion-title"><h3 id="expansion-title">Accelerants</h3><span>Install on purchase</span></div>
-              <div id="expansion-cards" class="market-grid expansion-grid"></div>
-            </section>
-            <div class="victory-strip">
-              <div class="victory-intro"><span aria-hidden="true">♔</span><div><strong>A claim to the city</strong><small>Buy prestige to win</small></div></div>
-              <div id="victory" class="victory-cards"></div>
-            </div>
-          </section>
-          <section class="separated" aria-labelledby="engine-title">
-            <div class="section-head">
-              <div class="title-row"><h2 id="engine-title">Your engine</h2><span>Permanent assets</span></div>
+        <aside class="engine-side" aria-labelledby="engine-title">
+          <div class="engine-box">
+            <div class="section-head engine-head">
+              <div><p class="eyebrow">PERMANENT ASSETS</p><h2 id="engine-title">Your engine</h2></div>
               <p id="engine-count"></p>
             </div>
-            <details class="engine-guide" open>
+            <div id="assets" class="asset-grid"></div>
+            <details class="engine-guide">
               <summary><span aria-hidden="true">✧</span> What is your engine?</summary>
               <div class="engine-copy">
                 <p>Assets stay in these slots and keep helping you while they’re active. They stay out of your deck until replaced.</p>
@@ -75,7 +61,23 @@
                 <button class="text-button" data-open="assets">See all asset effects</button>
               </div>
             </details>
-            <div id="assets" class="asset-grid"></div>
+          </div>
+        </aside>
+        <div class="board">
+          <section class="market-section" id="marketplace" aria-labelledby="market-title">
+            <div class="section-head">
+              <div><p class="eyebrow">BUILD YOUR ADVANTAGE</p><div class="title-row"><h2 id="market-title">The marketplace</h2><span>Shared supply</span></div></div>
+              <p id="market-note">Standard purchases go to your discard pile</p>
+            </div>
+            <div id="market" class="market-grid"></div>
+            <section id="expansion-market" hidden aria-labelledby="expansion-title">
+              <div class="title-row expansion-title"><h3 id="expansion-title">Accelerants</h3><span>Install on purchase</span></div>
+              <div id="expansion-cards" class="market-grid expansion-grid"></div>
+            </section>
+            <div class="victory-strip">
+              <div class="victory-intro"><span aria-hidden="true">♔</span><div><strong>A claim to the city</strong><small>Buy prestige to win</small></div></div>
+              <div id="victory" class="victory-cards"></div>
+            </div>
           </section>
           <section class="separated hand-section" aria-labelledby="hand-title" id="hand">
             <div class="section-head">
@@ -95,15 +97,17 @@
             <p class="eyebrow">MAKE YOUR MOVE</p>
             <h2 id="turn-title">Your turn</h2>
             <div class="counters">
+              <div><div class="counter-value"><span aria-hidden="true">⚡</span> <strong id="actions-left">1</strong></div><small>ACTIONS</small></div>
               <div><div class="counter-value"><span aria-hidden="true">◌</span> <strong id="coins">0</strong></div><small>COINS</small></div>
-              <div><div class="counter-value"><span aria-hidden="true">◇</span> <strong id="buys">2</strong></div><small>BUYS LEFT</small></div>
+              <div><div class="counter-value"><span aria-hidden="true">◇</span> <strong id="buys">1</strong></div><small>BUYS LEFT</small></div>
             </div>
             <div class="allowances"><span id="attack-status"></span><span id="build-status"></span><span id="tax-status" hidden></span></div>
             <button class="button primary end-turn" id="end-turn">End turn</button>
-            <p class="turn-hint">Unspent coins expire. Draw a fresh hand.</p>
+            <div class="speed-row" id="cpu-speed-row"><label for="cpu-speed">Rival pace</label><select id="cpu-speed" aria-label="Rival turn speed"><option value="1x">Step · 1×</option><option value="2x">Fast · 2×</option><option value="instant">Instant</option></select></div>
+            <p class="turn-hint">Unspent coins and actions expire. Draw a fresh hand.</p>
             <a class="text-button hand-link" href="#hand">Go to your hand</a>
           </div>
-          <div class="race"><span aria-hidden="true">♔</span><div><h3>Race to 15 prestige</h3><p>Reach 15 to trigger the final round. Highest score wins.</p></div></div>
+          <div class="race"><span aria-hidden="true">♔</span><div><h3 id="race-title">Race to 85 prestige</h3><p id="race-copy">Reach 85 to trigger the final round. Highest score wins.</p></div></div>
           <section class="chronicle" aria-labelledby="chronicle-title">
             <div class="chronicle-head"><h3 id="chronicle-title">Table chronicle</h3><span><i class="live-dot"></i> LIVE</span></div>
             <ol id="chronicle"></ol>
