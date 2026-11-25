@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151e19">
+  <meta name="description" content="Build an engine, scheme against rivals, and claim the city in Guildfall, a turn-based deck-building game.">
+  <title>Guildfall | Engines &amp; Intrigue</title>
+  <link rel="stylesheet" href="table.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <a class="brand" href="./" aria-label="Guildfall table">
+        <span class="brand-mark" aria-hidden="true">♔</span>
+        <span><span class="wordmark">Guildfall</span><small>Engines &amp; Intrigue</small></span>
+      </a>
+      <span class="table-label"><span class="live-dot"></span><span id="table-type">Solo table</span></span>
+      <nav aria-label="Game menu">
+        <button class="button outlined" data-open="library">Deck library</button>
+        <button class="button ghost" data-open="guide"><span aria-hidden="true">⊙</span> How to play</button>
+        <button class="button outlined" data-open="room">Game room</button>
+      </nav>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="game-title">
+        <div>
+          <p class="eyebrow">THE CITY IS YOURS TO CLAIM</p>
+          <h1 id="game-title">Fortune favors the cunning.</h1>
+        </div>
+        <div class="edition"><span class="tag" id="deck-label"></span><span>ROUND</span><strong id="round"></strong><span id="round-limit">/ 25 MAX</span></div>
+      </section>
+      <div id="players" class="players" aria-label="Players"></div>
+      <div id="game-notice" class="game-notice" hidden></div>
+      <div class="layout">
+        <div class="board">
+          <section class="market-section" id="marketplace" aria-labelledby="market-title">
+            <div class="section-head">
+              <div><p class="eyebrow">BUILD YOUR ADVANTAGE</p><div class="title-row"><h2 id="market-title">The marketplace</h2><span>Shared supply</span></div></div>
+              <p id="market-note">Standard purchases go to your discard pile</p>
+            </div>
+            <div id="market" class="market-grid"></div>
+            <section id="expansion-market" hidden aria-labelledby="expansion-title">
+              <div class="title-row expansion-title"><h3 id="expansion-title">Accelerants</h3><span>Install on purchase</span></div>
+              <div id="expansion-cards" class="market-grid expansion-grid"></div>
+            </section>
+            <div class="victory-strip">
+              <div class="victory-intro"><span aria-hidden="true">♔</span><div><strong>A claim to the city</strong><small>Buy prestige to win</small></div></div>
+              <div id="victory" class="victory-cards"></div>
+            </div>
+          </section>
+          <section class="separated" aria-labelledby="engine-title">
+            <div class="section-head">
+              <div class="title-row"><h2 id="engine-title">Your engine</h2><span>Permanent assets</span></div>
+              <p id="engine-count"></p>
+            </div>
+            <details class="engine-guide" open>
+              <summary><span aria-hidden="true">✧</span> What is your engine?</summary>
+              <div class="engine-copy">
+                <p>Assets stay in these slots and keep helping you while they’re active. They stay out of your deck until replaced.</p>
+                <div class="engine-columns">
+                  <div>
+                    <p class="eyebrow">BUILD FROM YOUR HAND</p>
+                    <div class="build-steps"><span>Unplayed card</span><b>›</b><span>Pay 2 coins</span><b>›</b><span>Asset</span></div>
+                    <p>Choose <strong>Build asset</strong> in your hand to use one unplayed card’s asset effect. You get one manual build each turn.</p>
+                  </div>
+                  <div>
+                    <p class="eyebrow">OPTIONAL SECOND DECK</p>
+                    <h3>Accelerants</h3>
+                    <p>Unlock the expansion and start a new game to install instant engines straight from the marketplace.</p>
+                    <button class="text-button" data-open="expansion">Explore the expansion</button>
+                  </div>
+                </div>
+                <div class="engine-example"><strong>Merchant</strong> &ensp; Play it for 2 coins now. Build it for 1 coin at the start of every turn.</div>
+                <button class="text-button" data-open="assets">See all asset effects</button>
+              </div>
+            </details>
+            <div id="assets" class="asset-grid"></div>
+          </section>
+          <section class="separated hand-section" aria-labelledby="hand-title" id="hand">
+            <div class="section-head">
+              <div><p class="eyebrow">YOUR MOVE</p><div class="title-row"><h2 id="hand-title">Your hand</h2><span id="hand-count"></span></div></div>
+              <div class="segmented" aria-label="Hand controls">
+                <button class="button" data-mode="play" aria-pressed="true">Play cards</button>
+                <button class="button" data-mode="build" aria-pressed="false">Build asset</button>
+              </div>
+            </div>
+            <p id="hand-note"></p>
+            <div id="hand-cards" class="hand-grid"></div>
+            <div id="hand-stats" class="hand-stats"></div>
+          </section>
+        </div>
+        <aside class="side" aria-label="Turn status">
+          <div class="turn-box">
+            <p class="eyebrow">MAKE YOUR MOVE</p>
+            <h2 id="turn-title">Your turn</h2>
+            <div class="counters">
+              <div><div class="counter-value"><span aria-hidden="true">◌</span> <strong id="coins">0</strong></div><small>COINS</small></div>
+              <div><div class="counter-value"><span aria-hidden="true">◇</span> <strong id="buys">2</strong></div><small>BUYS LEFT</small></div>
+            </div>
+            <div class="allowances"><span id="attack-status"></span><span id="build-status"></span><span id="tax-status" hidden></span></div>
+            <button class="button primary end-turn" id="end-turn">End turn</button>
+            <p class="turn-hint">Unspent coins expire. Draw a fresh hand.</p>
+            <a class="text-button hand-link" href="#hand">Go to your hand</a>
+          </div>
+          <div class="race"><span aria-hidden="true">♔</span><div><h3>Race to 15 prestige</h3><p>Reach 15 to trigger the final round. Highest score wins.</p></div></div>
+          <section class="chronicle" aria-labelledby="chronicle-title">
+            <div class="chronicle-head"><h3 id="chronicle-title">Table chronicle</h3><span><i class="live-dot"></i> LIVE</span></div>
+            <ol id="chronicle"></ol>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer><span>GUILDFALL <b>✦</b> FIRST EDITION</span><span>2–5 players &nbsp;·&nbsp; Engine building &nbsp;·&nbsp; Intrigue</span><button class="text-button" data-open="guide">Rules &amp; card guide</button></footer>
+  </div>
+  <nav class="quick-turn" aria-label="Quick table controls">
+    <span id="quick-counters"></span>
+    <a href="#marketplace">Market</a>
+    <a href="#hand">Hand</a>
+    <button class="button primary" id="quick-end">End turn</button>
+  </nav>
+  <dialog id="panel" aria-labelledby="panel-title">
+    <div class="dialog-head">
+      <div><p class="eyebrow" id="panel-kicker"></p><h2 id="panel-title"></h2></div>
+      <button class="button outlined close" id="close-panel" aria-label="Close dialog">×</button>
+    </div>
+    <div id="panel-body"></div>
+  </dialog>
+  <div class="sr-only" id="announcement" role="status"></div>
+  <script type="module" src="table.js"></script>
+</body>
+</html>

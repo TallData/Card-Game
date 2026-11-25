@@ -221,3 +221,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Guildfall is buildless; dist contains the maintained application source.
+!/dist/
+!/dist/**
+
+# Local Sites tooling and machine state
+.sites-checkout/
+.sites/
+node_modules/
+.DS_Store
